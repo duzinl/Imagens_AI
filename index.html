@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eduardo_M_P · Vision AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --card: #1a1a26;
+      --border: #2a2a3d;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --accent3: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --glow: rgba(124, 58, 237, 0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Grid noise background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow orb ── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 2rem 1.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: .75rem;
+      color: #fff;
+      letter-spacing: .04em;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px var(--glow);
+    }
+
+    .site-title {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(.85rem, 2.5vw, 1rem);
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .site-subtitle {
+      font-size: .72rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      margin-left: auto;
+      flex-shrink: 0;
+      transition: background .4s, box-shadow .4s;
+    }
+    .status-dot.active {
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e88;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
+
+    /* ── Main layout ── */
+    main {
+      position: relative;
+      z-index: 5;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ── Camera card ── */
+    .cam-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .cam-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .cam-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .cam-dot:nth-child(1) { background: #ef4444; }
+    .cam-dot:nth-child(2) { background: #f59e0b; }
+    .cam-dot:nth-child(3) { background: #22c55e; }
+
+    .cam-label {
+      font-family: 'Space Mono', monospace;
+      font-size: .68rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-left: auto;
+    }
+
+    #webcam-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      background: #0d0d16;
+      position: relative;
+    }
+
+    #webcam-container canvas {
+      border-radius: 0;
+      display: block;
+      max-width: 100%;
+    }
+
+    .cam-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .75rem;
+      color: var(--muted);
+      padding: 2.5rem 1rem;
+    }
+
+    .cam-placeholder svg {
+      opacity: .35;
+    }
+
+    .cam-placeholder span {
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Start button ── */
+    .btn-start {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .6rem;
+      width: 100%;
+      padding: .9rem 1.5rem;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent) 0%, #5b21b6 100%);
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform .15s, box-shadow .3s;
+      box-shadow: 0 4px 24px var(--glow), 0 2px 6px rgba(0,0,0,.4);
+    }
+
+    .btn-start::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .btn-start:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px var(--glow), 0 2px 6px rgba(0,0,0,.4);
+    }
+
+    .btn-start:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-start:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ── Predictions card ── */
+    .pred-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .pred-header {
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .pred-title {
+      font-family: 'Space Mono', monospace;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pred-badge {
+      margin-left: auto;
+      padding: .2rem .55rem;
+      border-radius: 6px;
+      background: rgba(124,58,237,.18);
+      border: 1px solid rgba(124,58,237,.3);
+      font-family: 'Space Mono', monospace;
+      font-size: .62rem;
+      color: #a78bfa;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .pred-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .pred-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      padding: 2rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* ── Individual prediction row ── */
+    .pred-row { display: flex; flex-direction: column; gap: .4rem; }
+
+    .pred-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pred-class {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .03em;
+    }
+
+    .pred-pct {
+      font-family: 'Space Mono', monospace;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--accent2);
+      letter-spacing: .04em;
+    }
+
+    /* Custom progress bar */
+    .pred-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,.06);
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pred-fill {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width .35s cubic-bezier(.4,0,.2,1), background .4s;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      position: relative;
+    }
+
+    .pred-fill::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: rgba(255,255,255,.6);
+      border-radius: 99px;
+      filter: blur(2px);
+    }
+
+    /* High confidence = golden glow */
+    .pred-fill.high {
+      background: linear-gradient(90deg, var(--accent3), #ef4444);
+      box-shadow: 0 0 10px rgba(245,158,11,.4);
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: .65rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: #a78bfa; text-decoration: none; }
+    footer a:hover { color: #c4b5fd; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .cam-card { animation: fadeUp .5s ease both; }
+    .pred-card { animation: fadeUp .5s .1s ease both; }
+
+    /* ── Responsiveness tweaks ── */
+    @media (max-width: 576px) {
+      header { padding: 1.25rem 1rem .75rem; }
+      main { padding: 1.5rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo-badge">EM</div>
+    <div>
+      <div class="site-title">Eduardo_M_P</div>
+      <div class="site-subtitle">Vision AI · Teachable Machine</div>
+    </div>
+    <div class="status-dot" id="statusDot" title="Câmera inativa"></div>
+  </header>
+
+  <!-- ── Main ── -->
+  <main>
+    <div class="container-xxl px-0">
+      <div class="row g-4 align-items-start justify-content-center">
+
+        <!-- Camera column -->
+        <div class="col-12 col-lg-5">
+          <div class="cam-card">
+            <div class="cam-header">
+              <div class="cam-dot"></div>
+              <div class="cam-dot"></div>
+              <div class="cam-dot"></div>
+              <span class="cam-label">live camera feed</span>
+            </div>
+
+            <div id="webcam-container">
+              <div class="cam-placeholder" id="camPlaceholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 7l-7 5 7 5V7z"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                <span>Câmera desativada</span>
+              </div>
+            </div>
+
+            <div class="p-3">
+              <button class="btn-start" id="startBtn" onclick="init()">
+                <span class="btn-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23 7l-7 5 7 5V7z"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" fill="white"/>
+                  </svg>
+                </span>
+                Ativar Câmera &amp; Iniciar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictions column -->
+        <div class="col-12 col-lg-7">
+          <div class="pred-card">
+            <div class="pred-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+              <span class="pred-title">Predições em tempo real</span>
+              <span class="pred-badge" id="modelStatus">aguardando</span>
+            </div>
+
+            <div class="pred-body" id="label-container">
+              <div class="pred-empty" id="predEmpty">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Inicie a câmera para ver as predições do modelo
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /row -->
+    </div><!-- /container -->
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    &copy; 2025 Eduardo_M_P &nbsp;·&nbsp;
+    Powered by <a href="https://teachablemachine.withgoogle.com/" target="_blank">Teachable Machine</a>
+    &amp; <a href="https://www.tensorflow.org/js" target="_blank">TensorFlow.js</a>
+  </footer>
+
+  <!-- ── Scripts ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script>
+    const URL = "https://teachablemachine.withgoogle.com/models/gbUGhguca/";
+    let model, webcam, labelContainer, maxPredictions;
+    let predRows = [];   // holds { row, fill, pct } per class
+
+    async function init() {
+      const btn = document.getElementById('startBtn');
+      btn.disabled = true;
+      btn.innerHTML = `
+        <span class="btn-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/>
+            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+          </svg>
+        </span>
+        Carregando modelo…`;
+
+      try {
+        const modelURL    = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        // ── Webcam setup ──
+        const flip = true;
+        webcam = new tmImage.Webcam(280, 280, flip);
+        await webcam.setup();
+        await webcam.play();
+
+        // Insert canvas
+        const container = document.getElementById('webcam-container');
+        document.getElementById('camPlaceholder').remove();
+        webcam.canvas.style.width  = '100%';
+        webcam.canvas.style.height = 'auto';
+        webcam.canvas.style.display = 'block';
+        container.appendChild(webcam.canvas);
+
+        // Status indicator
+        document.getElementById('statusDot').classList.add('active');
+        document.getElementById('statusDot').title = 'Câmera ativa';
+        document.getElementById('modelStatus').textContent = 'ao vivo';
+        document.getElementById('modelStatus').style.color = '#4ade80';
+        document.getElementById('modelStatus').style.borderColor = 'rgba(74,222,128,.3)';
+        document.getElementById('modelStatus').style.background = 'rgba(74,222,128,.08)';
+
+        // Build prediction rows
+        labelContainer = document.getElementById('label-container');
+        document.getElementById('predEmpty').remove();
+        predRows = [];
+
+        const colors = [
+          ['#7c3aed','#06b6d4'],
+          ['#f59e0b','#ef4444'],
+          ['#06b6d4','#22c55e'],
+          ['#ec4899','#8b5cf6'],
+          ['#22c55e','#06b6d4'],
+        ];
+
+        for (let i = 0; i < maxPredictions; i++) {
+          const c = colors[i % colors.length];
+          const row = document.createElement('div');
+          row.className = 'pred-row';
+          row.innerHTML = `
+            <div class="pred-row-header">
+              <span class="pred-class" id="class-name-${i}">Classe ${i+1}</span>
+              <span class="pred-pct" id="class-pct-${i}">0%</span>
+            </div>
+            <div class="pred-track">
+              <div class="pred-fill" id="class-fill-${i}"
+                style="background: linear-gradient(90deg, ${c[0]}, ${c[1]})"></div>
+            </div>`;
+          labelContainer.appendChild(row);
+          predRows.push({
+            nameEl: row.querySelector(`#class-name-${i}`),
+            pctEl:  row.querySelector(`#class-pct-${i}`),
+            fillEl: row.querySelector(`#class-fill-${i}`),
+          });
+        }
+
+        // Update button
+        btn.disabled = false;
+        btn.innerHTML = `
+          <span class="btn-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="4" width="4" height="16"/>
+              <rect x="14" y="4" width="4" height="16"/>
+            </svg>
+          </span>
+          Câmera ativa`;
+        btn.style.background = 'linear-gradient(135deg,#166534,#15803d)';
+        btn.style.boxShadow  = '0 4px 24px rgba(34,197,94,.3)';
+        btn.onclick = null;   // disable re-click
+
+        window.requestAnimationFrame(loop);
+
+      } catch(e) {
+        console.error(e);
+        btn.disabled = false;
+        btn.innerHTML = '⚠ Erro — tente novamente';
+        btn.style.background = 'linear-gradient(135deg,#7f1d1d,#dc2626)';
+        btn.onclick = init;
+      }
+    }
+
+    async function loop() {
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      for (let i = 0; i < maxPredictions; i++) {
+        const { className, probability } = prediction[i];
+        const pct = (probability * 100).toFixed(1);
+        const { nameEl, pctEl, fillEl } = predRows[i];
+
+        nameEl.textContent = className;
+        pctEl.textContent  = pct + '%';
+        fillEl.style.width = pct + '%';
+
+        // Golden highlight when dominant (>65%)
+        if (probability > 0.65) {
+          fillEl.classList.add('high');
+        } else {
+          fillEl.classList.remove('high');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
